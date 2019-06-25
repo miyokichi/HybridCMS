@@ -1,0 +1,2 @@
+public直下にあるphpファイルは、getメソッドでアクセスしてきたhhtpを受けて実行するもの(MVSのcontrollerに相当)。
+（modelをもちいて）特定のパラメータを生成。viewに渡す。
