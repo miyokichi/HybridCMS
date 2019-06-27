@@ -2,17 +2,11 @@
 
 class DatabaseConnecter extends PDO
 {
-    /*
-    private static $user ="kohei";
-    private static $password = "14142hitomigoro";
-    private static $dbName = "hybridcms";
-    private static $host = "localhost:3306";
-    */
 
-    private static $user ="miyokichi";
-    private static $password = "14142hitomigoro";
-    private static $dbName = "miyokichi_hybridcms";
-    private static $host = "mysql618.db.sakura.ne.jp";
+    private static $user ="username";
+    private static $password = "password";
+    private static $dbName = "dbname";
+    private static $host = "host";
 
     //データベースに接続します
     function __construct()
