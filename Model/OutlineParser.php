@@ -364,9 +364,9 @@ class OutlineParser
                 self::BlockTagNameStackPush('section');
 
                 //セクションタイトルの処理
-                $output .= '<section><h' . strval(self::$indentLevel + 2) . '>';
+                $output .= '<section><h' . strval(self::$indentLevel + 2) . '  class="section-title">';
                 $output .= $matched[1];
-                $output .= '</h' . strval(self::$indentLevel + 2) . '><div class="sectionBody">';
+                $output .= '</h' . strval(self::$indentLevel + 2) . '><div class="section-body">';
 
                 break;
 
@@ -387,7 +387,7 @@ class OutlineParser
                     self::BlockTagNameStackPush('section');
 
                     //セクションタイトルの処理
-                    $output .= '<section><h' . strval(self::$indentLevel + 2) . '>';
+                    $output .= '<section><h' . strval(self::$indentLevel + 2) . ' class="section-title">';
                     $output .= $matched[1];
                     $output .= '</h' . strval(self::$indentLevel + 2) . '><div class="sectionBody">';
                 }

@@ -1,10 +1,12 @@
 <?php
+function html($paramArray)
+{
+?>
+<!DOCTYPE html>
 
-function html($paramArray){
-echo '<!DOCTYPE html><html>';
+<html>
+<head>
 
-//head============================================================================================
-echo '
     <!-- エンコードの指定 -->
     <meta charset="utf-8">
 
@@ -15,55 +17,55 @@ echo '
     <meta name="format-detection" content="telephone=no">
 
     <!-- viewport(レスポンシブ用) -->
-    <meta name="viewport" content="width=device-width">';
+    <meta name="viewport" content="width=device-width">
 
+    <?php
     echo '<title>' . $paramArray['title'] . '</title>';
+    echo '<meta name="description" content="' . $paramArray['abstract'] .'">'; ?>
 
-    echo '<meta name="description" content="' . $paramArray['abstract'] .'">';
-
-    echo'
     <!-- faviconの指定 -->
     <link rel="icon" href="favicon.ico">
 
     <!-- その他、必要なファイルの読み込みなど -->
     <link rel="stylesheet" type="text/css" href="/css/style.css">
-    <link href="https://fonts.googleapis.com/css?family=Anton&display=swap" rel="stylesheet">';
+    <link href="https://fonts.googleapis.com/css?family=Anton&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="/js/IndexGenerator.js"></script>
+</head>
 
-
-
-//body========================================================================================
-//start header-----------------------------------------------------------------------------
-echo '
+<body>
 <header><div id="webSiteTitle">miyokichi.net</div></header>
-';
-
-//end header--------------------------------------------------------------------------------
-
-//start main contents------------------------------------------------------------------------
-
-echo '<main><article>';
-
-echo '<h1>' . $paramArray['title'] . '</h1>';
-echo '作成日時：' . $paramArray['create_at'];
-echo '更新日時：' . $paramArray['update_at'];
-echo '<p>' . $paramArray['abstract'] .'</p>';
-
-echo $paramArray['html_content'];
-
-echo '<ul>';
-for($i = 0;$i < count($paramArray['children']); $i++){
-    echo '<li>' .'<a href=/'. $paramArray['children'][$i]['path'] . '>'. $paramArray['children'][$i]['title'] . '</a></li>';
-}
-echo '</ul>';
-
-echo '</article></main>';
-
-//end main contents-------------------------------------------------------------------------
-
-//start footer-----------------------------------------------------------------------------
 
 
-//end footer--------------------------------------------------------------------------------
-echo '</html>';
+<main>
+<article>
 
+<?php
+    echo '<div id="meta-content">';
+    echo '<h1>' . $paramArray['title'] . '</h1>';
+    echo '<p>作成日時：' . $paramArray['create_at'] . '   ';
+    echo '更新日時：' . $paramArray['update_at'] . '</p>';
+    echo '<p>' . $paramArray['abstract'] .'</p>';
+    echo '</div>';
+
+    echo '<div id="index"><p>目次</p></div>';
+
+    echo '<div id="main-content">';
+    echo $paramArray['html_content'];
+    echo '</div>'; ?>
+
+
+<?php
+    
+    echo '<div id=children-contents-list>';
+    for ($i = 0;$i < count($paramArray['children']); $i++) {
+        echo '<a href=/'. $paramArray['children'][$i]['path'] . ' class="children-contents-list-item">'. $paramArray['children'][$i]['title'] . '</a>';
+    }
+    echo '</div>'; ?>
+
+</article>
+</main>
+
+</html>
+
+<?php
 }
