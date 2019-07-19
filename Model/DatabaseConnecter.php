@@ -2,7 +2,7 @@
 
 class DatabaseConnecter extends PDO
 {
-
+    
     private static $user ="username";
     private static $password = "password";
     private static $dbName = "dbname";

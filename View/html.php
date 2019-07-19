@@ -44,13 +44,18 @@ function html($paramArray)
     echo '<h1>' . $paramArray['title'] . '</h1>';
     echo '<p>作成日時：' . $paramArray['create_at'] . '   ';
     echo '更新日時：' . $paramArray['update_at'] . '</p>';
+    /*
+    foreach ($paramArray['tags'] as $tag) {
+        echo '<p>' . $tag . '</p>';
+    }
+    */
     echo '<p>' . $paramArray['abstract'] .'</p>';
     echo '</div>';
 
     echo '<div id="index"><p>目次</p></div>';
 
     echo '<div id="main-content">';
-    echo $paramArray['html_content'];
+    echo $paramArray['content'];
     echo '</div>'; ?>
 
 

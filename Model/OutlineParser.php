@@ -17,7 +17,8 @@ class OutlineParser
         'title' => '', 
         'abstract' => '',
         'create_at' => '',
-        'update_at' => ''
+        'update_at' => '',
+        'tags' => array()
     ];
 
     //関数テーブル関連========================================================================
@@ -41,7 +42,8 @@ class OutlineParser
         'title' => ['/^title:(.*)/', 'ProcessTitle'],
         'abstract' => ['/^abstract:(.*)/', 'ProcessAbstract'],
         'create_at' => ['/^create_at:(.*)/', 'ProcessCreatAt'],
-        'update_at' => ['/^update_at:(.*)/', 'ProcessUpdateAt']
+        'update_at' => ['/^update_at:(.*)/', 'ProcessUpdateAt'],
+        'tags' => ['/^tags:(.*)/', 'ProcessTags']
     ];
 
     /** ブロックタグの関数テーブル用の値 */
@@ -66,6 +68,9 @@ class OutlineParser
 
     /** 関数用スタック */
     private static $functionStack = [];
+
+    /**コンテンツのパス */
+    private static $contentPath;
 
     /** 改行で分割した行の格納用 */
     private static $lines;
@@ -99,7 +104,7 @@ class OutlineParser
     private static $tempOutput;
 
 
-    public static function Initialize($text){
+    public static function Initialize($contentPath){
         //初期処理-------------------------------------------------------------
         self::$indentRegexp = '/^[ ]{' . strval(self::INDENT_SPACE) . '}/';
 
@@ -107,6 +112,9 @@ class OutlineParser
         self::$blockTagFunctionTable = self::ArraysCombine(self::$functionTableKeys, self::$blockTagFunctionTableValues);
         self::$inlineTagFunctionTable = self::ArraysCombine(self::$functionTableKeys, self::$inlineTagFunctionTableValues);
         //var_dump(self::$blockTagFunctionTable);
+
+        self::$contentPath = $contentPath;
+        $text = file_get_contents($_SERVER['DOCUMENT_ROOT'] .'/'. $contentPath);
 
         self::$indentLevel = 0;
         self::$previousIndentLevel = 0;
@@ -125,12 +133,15 @@ class OutlineParser
 
         self::$tempOutput = '';
 
+        /*
         self::$metaTag = [
             'title' => '', 
             'abstract' => '',
             'create_at' => '',
-            'update_at' => ''
+            'update_at' => '',
+            'tags' => array()
         ];
+        */
 
         //END 初期処理-----------------------------------------------------------
     }
@@ -340,6 +351,22 @@ class OutlineParser
     private static function ProcessUpdateAt($mode, $matched = '')
     {
         self::$metaTag['update_at'] = $matched[1];
+    }
+
+
+    /**
+     * tagを処理する
+     * @param $mode
+     * @param $matched
+     */
+    private static function ProcessTags($mode, $matched = '')
+    {
+        $tags = explode(',', $matched[1]);
+        $trimedTags = [];
+        foreach ($tags as $tag) {
+            $trimedTags[] = trim($tag);
+        }
+        self::$metaTag['tags'] = $trimedTags;
     }
 
     //======================================================================================================
@@ -647,7 +674,12 @@ class OutlineParser
      */
     private static function ProcessImage($mode, $matched = '')
     {
-        return '<figre><img src=' . $matched[2] . ' alt=' . $matched[1] . '>' . '<figcaption>' . $matched[1] . '</figcaption></figre>';
+        $paramater = explode('/', self::$contentPath);
+        $directory = '';
+        for($i=0;$i < (count($paramater)-1);$i++){
+            $directory .= $paramater[$i] . '/';
+        }
+        return '<figre><img src=' . '/' . $directory . $matched[2] . ' alt=' . $matched[1] . '>' . '<figcaption>' . $matched[1] . '</figcaption></figre>';
     }
 
     //END Block関数テーブルの関数とそれに関連する関数================================================================

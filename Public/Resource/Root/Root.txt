@@ -1,4 +1,4 @@
-title:Welcome
-abstract:Root contentsです。
+title:みよきちの個人ページにようこそ！
+abstract:これは個人的に興味を持ったことについて、いろいろ書いた忘備録です。
 create_at:2019/6/19
 update_at:2019/6/20

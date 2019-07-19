@@ -52,7 +52,9 @@ main {
     }
     article {
         display: grid;
-        grid-template-areas: "meta-content" "index" "main-content" "children"
+        grid-template-areas: "meta-content" "index" "main-content" "children";
+        width: 90%;
+        margin: 0 auto;
     }
 }
 
@@ -108,6 +110,10 @@ h2::after {
     width: 100%;
     height: 0;
     border-bottom: 1px solid #ccc;
+}
+
+img {
+    width: 90%;
 }
 
 .children-contents-list-item {

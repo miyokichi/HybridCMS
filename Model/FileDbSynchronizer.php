@@ -1,8 +1,5 @@
 <?php
 
-require_once 'OutlineParser.php';
-//require_once 'DatabaseConnecter.php';
-
 class FileDbSynchronizer
 {
     private static $contentDirectory = [];
@@ -17,63 +14,43 @@ class FileDbSynchronizer
      * @param $currentDirectoryPath 親のディレクトリのパス
      * @return $tempContentDirectory 最終的なディレクトリ構造（配列）
      */
-    public static function GetContentsDirectryStructure($currentDirectoryPath = 'Resource/Root/', $parentDirectoryPath = null)
+    public static function GetContentsInfo($currentDirectoryPath = 'Resource/Root/', $parentDirectoryPath = null)
     {
 
-        //現在のディレクトリのコンテンツを取得(コンテンツのぞんざいを担保するため)
+        //現在のディレクトリのコンテンツを取得(コンテンツの存在を担保するため)
         $currentDirectoryContents = glob($currentDirectoryPath . '*.txt');
 
         //子コンテンツのディレクトリリストを取得
         $childerenContentsDirectory = glob($currentDirectoryPath . '*/');
-        //var_dump($currentDirectoryPath);
 
 
         //現在のディレクトリのコンテンツをキャッシュ
         foreach ($currentDirectoryContents as $currentDirectoryContent) {
-            $metaTag = [
-                'path' => '',
-                'title' => '',
-                'abstract' => '',
-                'create_at' => '',
-                'update_at' => '',
-            ];
-
-            //コンテンツの情報を取得
-            /*
-            $htmlContent = '';
-            */
-            $content = file_get_contents($currentDirectoryContent);
-            if ($content) {
-                OutlineParser::Initialize($content);
-                $metaTag = OutlineParser::MetaParse();
-            }
-            
 
             //pathの情報変換
             $path = str_replace('Resource/', '', $currentDirectoryPath);
 
             //親がいない時は確実にnullにセット
-            if($parentDirectoryPath == null){
+            if ($parentDirectoryPath == null) {
                 $parent = null;
-            }else{
+            } else {
                 $parent = str_replace('Resource/', '', $parentDirectoryPath);
             }
-            
+
+            //ファイルのシステム時間を取得
+            $fileSystemTime = fileatime($currentDirectoryContent);
+
             self::$contentDirectory[$path]=
-                [
-                    'path' => $path,
-                    'title' => $metaTag['title'],
-                    'abstract' => $metaTag['abstract'],
-                    'create_at' => str_replace('/', '-', $metaTag['create_at']),
-                    'update_at' => str_replace('/', '-', $metaTag['update_at']),
-                    'parent' => $parent
-                ];
-        
+            [
+                'contentPath' => $currentDirectoryContent,
+                'systemTime' => $fileSystemTime,
+                'parent' => $parent
+            ];
 
             //子ディレクトリがあるときは、再帰的に処理。
             if (!empty($childerenContentsDirectory)) {
                 foreach ($childerenContentsDirectory as $childContentsDirectory) {
-                    self::GetContentsDirectryStructure($childContentsDirectory, $currentDirectoryPath);
+                    self::GetContentsInfo($childContentsDirectory, $currentDirectoryPath);
                 }
             }
         }
@@ -85,7 +62,7 @@ class FileDbSynchronizer
      * コンテンツのディレクトリ構造をtxtで保存
      * @param $contentsDirectoryStructure コンテンツのディレクトリ構造を持った配列
      */
-    public static function SaveContentsDirectoryStructure($contentsDirectoryStructure)
+    public static function SaveContentsInfo($contentsDirectoryStructure)
     {
         $jsonText = json_encode($contentsDirectoryStructure);
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/../Cache/ContentsDirectoryStructure.json', $jsonText);
@@ -103,40 +80,10 @@ class FileDbSynchronizer
     //キャッシュからDBに格納する部分============================================================================================
 
     /**
-     * キャッシュと現在のディレクトリ構造の差分からデータベースへコンテンツ情報を反映
-     * @param $contentsDiff キャッシュと現在のコンテンツのディレクトリ構造の差分
-     */
-    /*
-    public static function SyncronizeCacheToDatabase($contentsDiff)
-    {
-        $pdo = new DatabaseConnecter;
-
-        $pdo->beginTransaction();
-
-        foreach ($contentsDiff as $content) {
-            $sql = "INSERT contents (path, title, abstract, create_at, update_at) Value (:path, :title, :abstract, :create_at, :update_at)";
-
-            $stm = $pdo->prepare($sql);
-
-            $stm->bindValue(":path", $content["path"], PDO::PARAM_STR);
-            $stm->bindValue(":title", $content["title"], PDO::PARAM_STR);
-            $stm->bindValue(":abstract", $content["abstract"], PDO::PARAM_STR);
-            $stm->bindValue(":create_at", $content["create_at"], PDO::PARAM_STR);
-            $stm->bindValue(":update_at", $content["update_at"], PDO::PARAM_STR);
-
-            $stm->execute();
-        }
-
-        $pdo->commit();
-
-    }
-    */
-
-    /**
      * jsonテキストで保存されているコンテンツのディレクトリ構造を取得
      * @return $contentsDirectoryStructure jsonからデコードしたコンテンツ構造
      */
-    public static function GetSavedContentsDirectryStructure()
+    public static function GetSavedContentsInfo()
     {
         if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/../Cache/ContentsDirectoryStructure.json')) {
             $jsonText = file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/../Cache/ContentsDirectoryStructure.json');
@@ -151,13 +98,13 @@ class FileDbSynchronizer
     //END キャッシュからDBに格納する部分========================================================================================
 
     /**
-     * 
+     * コンテンツの差分を取得
      * @param $contents1
      * @param $contents2
      * @return $contents $contents1、$contents2ともに存在するがメタタグが違う配列
      */
     
-    public static function ContentsMetatagDiff($contents1, $contents2)
+    public static function ContentsInfoDiff($contents1, $contents2)
     {
         $contentsDiff = [];
         foreach ($contents1 as $content1Key => $content1) {
@@ -165,20 +112,17 @@ class FileDbSynchronizer
             //コンテンツ1と同じキーを持つ配列を取得
             if (array_key_exists($content1Key, $contents2)) {
                 $content2 = $contents2[$content1Key];
-            }else{
+            } else {
                 continue;
             }
 
             //コンテンツのメタタグを比較
             $contentDiff = array_diff_assoc($content1, $content2);
-            //var_dump($contentDiff);
-            //echo 'fefdsafds';
 
-            if(!empty($contentDiff)){
+            if (!empty($contentDiff)) {
                 $contentsDiff[$content1Key] = $content1;
             }
         }
         return $contentsDiff;
     }
-    
 }

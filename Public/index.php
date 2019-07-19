@@ -19,35 +19,29 @@ if (array_key_exists('url', $_GET)) {
 
 
 
-//ファイルからコンテンツデータを取得
-$content = file_get_contents($contentPath);
-OutlineParser::Initialize($content);
-$metaTag = OutlineParser::MetaParse();
-$htmlContent = OutlineParser::ContentParse();
-
 //データベースからchildrenデータを取得
 $pdo = new DatabaseConnecter;
 
 $pdo->beginTransaction();
 
+$sql = "SELECT * FROM contents WHERE path = :path";
+$stm = $pdo->prepare($sql);
+$stm->bindValue(":path", $path, PDO::PARAM_STR);
+$stm->execute();
+$contentParam = $stm->fetch(PDO::FETCH_ASSOC);
+
+$children = array();
 $sql = "SELECT * FROM contents WHERE parent = :path";
 $stm = $pdo->prepare($sql);
 $stm->bindValue(":path", $path, PDO::PARAM_STR);
 $stm->execute();
-$childrenContents = $stm->fetchAll(PDO::FETCH_ASSOC);
-
+$children = $stm->fetchAll(PDO::FETCH_ASSOC);
 
 $pdo->commit();
 
-//var_dump($childrenContent);
+//var_dump($contentParam);
+//var_dump($children);
 
-$paramArray = [
-    'title' => $metaTag['title'],
-    'abstract' => $metaTag['abstract'],
-    'create_at' => $metaTag['create_at'],
-    'update_at' => $metaTag['update_at'],
-    'children' => $childrenContents,
-    'html_content' => $htmlContent
-];
+$paramArray = array_merge($contentParam, array('children' => $children));
 
 html($paramArray);
